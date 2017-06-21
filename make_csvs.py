@@ -6,6 +6,7 @@ new_results = []
 duplicates_results = []
 manual_check_results = []
 master_records = []
+totalmatches = 0
 
 
 '''
@@ -23,8 +24,8 @@ First Name,Last Name,Email,Home Address 1,Home Address 2,Home City,Home State,Ho
 def search_master_by_email(email):
     results = []
     for item in master_records:
-        if item["Email Number"] == email:
-            results.append(item)
+        if item["Email Number"].lower() == email.lower():
+                results.append(item)
     return results
 
 
@@ -45,29 +46,22 @@ with open('rootscamp_list.csv','rb') as rootscamp:
         event_counter +=1
         matches = search_master_by_email(row["Email"])
 
-        #if the email address is already in Raiser's Edge, add the record to the duplicates csv:
-        if len(matches) > 0:
+        
+
+        if len(matches) > 0: #if the email address is already in RE
+            totalmatches += len(matches)
             duplicates_results += matches
+        else: # if the email address is not already in Raiser's Edge
+            new_results.append(row)
 
-        # if the email address is not already in Raiser's Edge
-        else:
-            pass
-            # Check if the first and last name are already in RE
+    print totalmatches, len(new_results)
 
-        #    if the row with the email address matched last name or first name:
-        #       duplicates_results.append(row)
-        #    else:
-        #       manual_check_results.append(row)
-        #elif the last name is in master indices:
-        #    if the row with the matching last name also matches first name:
-        #       duplicates_results.append(row)
-        #    elif the row with the matching last name also matches state:
-        #       manual_check_results.append(row)
-        #else:
-        #    new_results.append(row)
-
-
-# Write the CSVs
-
+# Write the new records CSV
+with open('new_records.csv', 'w') as csvfile:
+    fieldnames = ['First Name','Last Name','Email Number','Mobile Number','Preferred Address Lines','Preferred City','Preferred State','Preferred ZIP']
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+    for n in new_results:
+        writer.writerow({'First Name': n['First Name'], 'Last Name': n['Last Name'], 'Email Number': n['Email'], 'Mobile Number': n['Cell Phone'], 'Preferred Address Lines': n['Home Address 1'] + n['Home Address 2'], 'Preferred City': n['Home City'], 'Preferred State': n['Home State'], 'Preferred ZIP': n['Home Zip'] })
 
 print "{0} records checked from event list against {1} records in Raiser's Edge.".format(event_counter, RE_counter)
